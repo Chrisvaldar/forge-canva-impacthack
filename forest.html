@@ -1,0 +1,2224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Forge — Career Path Explorer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-cream: #FAF7F2;
+      --forest-dark: #1C2B1E;
+      --green-deep: #4A7C59;
+      --green-mid: #7BAE7F;
+      --green-light: #B5D5B5;
+      --accent-warm: #E8C9A0;
+      --radius-soft: 16px;
+      --radius-pill: 999px;
+      --transition: 500ms ease-in-out;
+      --font-heading: 'Fraunces', Georgia, serif;
+      --font-body: 'DM Sans', system-ui, sans-serif;
+      --font-hand: 'Caveat', cursive;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: var(--font-body);
+      background: var(--bg-cream);
+      color: var(--forest-dark);
+    }
+
+    #app {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.98);
+      transition: opacity var(--transition), transform var(--transition);
+    }
+
+    .screen.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+
+    .screen.bloom-in {
+      transform: scale(0.96);
+    }
+    .screen.bloom-in.active {
+      transform: scale(1);
+    }
+
+    /* ── Screen 1: Entry ── */
+    #screen-entry {
+      background: var(--bg-cream);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #entry-particles {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .entry-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      max-width: 960px;
+      padding: 0 48px;
+    }
+
+    .entry-content h1 {
+      font-family: var(--font-heading);
+      font-size: 52px;
+      font-weight: 500;
+      line-height: 1.25;
+      color: var(--forest-dark);
+      margin-bottom: 48px;
+    }
+
+    .forge-mark {
+      font-family: var(--font-heading);
+      font-size: 18px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--green-mid);
+      margin-bottom: 32px;
+    }
+
+    .entry-input-wrap {
+      width: 280px;
+      border-bottom: 2px solid var(--green-mid);
+      padding-bottom: 8px;
+    }
+
+    .entry-input-wrap input {
+      font-family: var(--font-heading);
+      font-size: 36px;
+      font-weight: 500;
+      color: var(--green-deep);
+      background: transparent;
+      border: none;
+      outline: none;
+      text-align: center;
+      width: 100%;
+      min-height: 36px;
+      caret-color: var(--green-deep);
+    }
+
+    .btn-continue {
+      margin-top: 48px;
+      padding: 16px 48px;
+      font-family: var(--font-body);
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--bg-cream);
+      background: var(--green-deep);
+      border: none;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity var(--transition), transform var(--transition), background 300ms;
+    }
+
+    .btn-continue.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .btn-continue:hover {
+      background: var(--green-mid);
+    }
+
+    /* ── Screen 2: Conversation ── */
+    #screen-conversation {
+      background: var(--bg-cream);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .conversation-wrap {
+      max-width: 900px;
+      width: 100%;
+      padding: 0 48px;
+      text-align: center;
+      margin: 0 auto;
+    }
+
+    .question-block {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 400ms ease-in-out, transform 400ms ease-in-out;
+    }
+
+    .question-block.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .question-block.fading-out {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+
+    .question-block h2 {
+      font-family: var(--font-heading);
+      font-size: 44px;
+      font-weight: 500;
+      line-height: 1.3;
+      margin-bottom: 40px;
+      color: var(--forest-dark);
+    }
+
+    .answer-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: center;
+    }
+
+    .pill {
+      padding: 14px 28px;
+      font-family: var(--font-body);
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--forest-dark);
+      background: rgba(181, 213, 181, 0.25);
+      border: 2px solid transparent;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      transition: all 350ms ease-in-out;
+    }
+
+    .pill:hover {
+      background: rgba(181, 213, 181, 0.45);
+    }
+
+    .pill.selected {
+      border-color: var(--green-deep);
+      background: rgba(122, 174, 127, 0.35);
+      color: var(--green-deep);
+    }
+
+    .conv-continue {
+      margin-top: 56px;
+    }
+
+    /* ── Screen 3: Generation ── */
+    #screen-generation {
+      background: var(--forest-dark);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #gen-particles {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .gen-canopy {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(74, 124, 89, 0.35) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 30% at 30% 10%, rgba(123, 174, 127, 0.2) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 70% 8%, rgba(123, 174, 127, 0.15) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .gen-text-wrap {
+      position: relative;
+      z-index: 2;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .gen-text {
+      font-family: var(--font-heading);
+      font-size: 36px;
+      font-weight: 400;
+      color: var(--green-light);
+      position: absolute;
+      opacity: 0;
+      transition: opacity 600ms ease-in-out;
+    }
+
+    .gen-text.active {
+      opacity: 1;
+    }
+
+    .gen-progress-wrap {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60%;
+      max-width: 720px;
+      height: 6px;
+      background: rgba(181, 213, 181, 0.15);
+      border-radius: var(--radius-pill);
+      overflow: hidden;
+      z-index: 2;
+    }
+
+    .gen-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--green-deep), var(--green-mid), var(--accent-warm));
+      border-radius: var(--radius-pill);
+      box-shadow: 0 0 12px rgba(123, 174, 127, 0.5);
+      transition: width 5s linear;
+    }
+
+    /* ── Screen 4: Trees ── */
+    #screen-trees {
+      background: var(--bg-cream);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .trees-header {
+      padding: 32px 48px 16px;
+      text-align: center;
+    }
+
+    .trees-header h1 {
+      font-family: var(--font-heading);
+      font-size: 32px;
+      font-weight: 500;
+      color: var(--green-deep);
+    }
+
+    .trees-header p {
+      font-size: 15px;
+      color: rgba(28, 43, 30, 0.6);
+      margin-top: 6px;
+    }
+
+    /* Pathway browse — titles only, side scroll */
+    .pathway-browse {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 0;
+      transition: opacity var(--transition);
+    }
+
+    .pathway-browse.hidden {
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      padding-top: 100px;
+    }
+
+    .pathway-cards {
+      display: flex;
+      gap: 28px;
+      padding: 0 10vw 8px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      scrollbar-width: none;
+      align-items: stretch;
+    }
+
+    .pathway-cards::-webkit-scrollbar {
+      display: none;
+    }
+
+    .pathway-card {
+      flex: 0 0 min(420px, 78vw);
+      min-height: 260px;
+      scroll-snap-align: center;
+      background: linear-gradient(160deg, #ffffff 0%, rgba(181, 213, 181, 0.12) 100%);
+      border: 1.5px solid rgba(181, 213, 181, 0.55);
+      border-radius: 24px;
+      padding: 40px 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      text-align: left;
+      cursor: pointer;
+      transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+      box-shadow: 0 4px 24px rgba(74, 124, 89, 0.06);
+      font: inherit;
+      color: inherit;
+    }
+
+    .pathway-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 16px 48px rgba(74, 124, 89, 0.14);
+      border-color: var(--green-mid);
+    }
+
+    .pathway-card-title {
+      font-family: var(--font-heading);
+      font-size: 36px;
+      font-weight: 500;
+      line-height: 1.2;
+      color: var(--forest-dark);
+      margin-bottom: 16px;
+    }
+
+    .pathway-card-cta {
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--green-deep);
+      opacity: 0.75;
+    }
+
+    .pathway-scroll-hint {
+      text-align: center;
+      font-size: 13px;
+      color: rgba(28, 43, 30, 0.45);
+      margin-top: 28px;
+      letter-spacing: 0.02em;
+    }
+
+    /* Single pathway detail */
+    .pathway-detail {
+      position: absolute;
+      inset: 0;
+      top: 88px;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.98);
+      transition: opacity var(--transition), transform var(--transition);
+      padding: 0 48px 32px;
+    }
+
+    .pathway-detail.open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+
+    .pathway-detail-top {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 16px;
+      flex-shrink: 0;
+    }
+
+    .pathway-back {
+      padding: 10px 20px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--green-deep);
+      background: rgba(181, 213, 181, 0.25);
+      border: none;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      transition: background 300ms ease-in-out;
+      flex-shrink: 0;
+    }
+
+    .pathway-back:hover {
+      background: rgba(181, 213, 181, 0.45);
+    }
+
+    .pathway-detail-title {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 500;
+      color: var(--forest-dark);
+      flex: 1;
+      min-width: 0;
+    }
+
+    .pathway-save {
+      margin-left: auto;
+      padding: 10px 22px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--bg-cream);
+      background: var(--green-deep);
+      border: none;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 300ms ease-in-out, transform 300ms ease-in-out;
+      touch-action: manipulation;
+    }
+
+    .pathway-save:hover {
+      background: var(--green-mid);
+    }
+
+    .pathway-save:active {
+      transform: scale(0.97);
+    }
+
+    .pathway-save.saving {
+      opacity: 0.75;
+      pointer-events: none;
+    }
+
+    .pathway-detail-body {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      justify-content: center;
+      padding: 12px 0 48px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--green-light) transparent;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .pathway-detail-body .tree-svg-container {
+      width: 100%;
+      max-width: 660px;
+      overflow: visible;
+    }
+
+    .tree-svg-container {
+      width: 100%;
+      position: relative;
+    }
+
+    .tree-svg-container svg {
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
+
+    .tree-edge {
+      fill: none;
+      stroke: var(--green-mid);
+      stroke-width: 2;
+      stroke-linecap: round;
+      opacity: 0.7;
+    }
+
+    .tree-edge.highlight {
+      stroke: var(--green-deep);
+      stroke-width: 3;
+      opacity: 1;
+      filter: drop-shadow(0 0 4px rgba(74, 124, 89, 0.4));
+    }
+
+    .tree-edge.loop {
+      stroke-dasharray: 6 5;
+      opacity: 0.45;
+    }
+
+    .node-card {
+      background: white;
+      border: 1.5px solid rgba(181, 213, 181, 0.8);
+      border-radius: 12px;
+      padding: 8px 10px;
+      box-shadow: 0 2px 8px rgba(74, 124, 89, 0.08);
+      transition: transform 400ms ease-in-out, box-shadow 400ms ease-in-out;
+      cursor: default;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .node-card .node-year {
+      font-size: 9px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--green-mid);
+      margin-bottom: 4px;
+      flex-shrink: 0;
+    }
+
+    .node-card .node-label {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--forest-dark);
+      line-height: 1.25;
+      margin-bottom: 3px;
+      flex-shrink: 0;
+    }
+
+    .node-card .node-desc {
+      font-size: 9px;
+      color: rgba(28, 43, 30, 0.55);
+      line-height: 1.3;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .node-card.type-convergence .node-label,
+    .node-card.type-pivot .node-label,
+    .node-card.type-doubt .node-label {
+      font-size: 10.5px;
+      line-height: 1.28;
+    }
+
+    .node-card.type-shared {
+      border-color: var(--accent-warm);
+      cursor: pointer;
+      animation: sharedGlow 3s ease-in-out infinite;
+    }
+
+    .node-card.type-shared:hover {
+      transform: scale(1.03);
+    }
+
+    @keyframes sharedGlow {
+      0%, 100% { box-shadow: 0 0 8px rgba(232, 201, 160, 0.4), 0 2px 8px rgba(74, 124, 89, 0.08); }
+      50% { box-shadow: 0 0 18px rgba(232, 201, 160, 0.65), 0 2px 12px rgba(74, 124, 89, 0.12); }
+    }
+
+    .node-card.type-convergence {
+      border-color: var(--green-deep);
+      border-width: 2px;
+      animation: convergencePulse 3s ease-in-out infinite;
+    }
+
+    @keyframes convergencePulse {
+      0%, 100% { box-shadow: 0 0 10px rgba(74, 124, 89, 0.25); }
+      50% { box-shadow: 0 0 22px rgba(74, 124, 89, 0.45); }
+    }
+
+    .node-card.type-pivot,
+    .node-card.type-doubt {
+      border-style: dashed;
+      border-color: var(--accent-warm);
+      position: relative;
+    }
+
+    .node-card.type-doubt::before {
+      content: '?';
+      position: absolute;
+      top: -8px;
+      right: -4px;
+      width: 20px;
+      height: 20px;
+      background: var(--accent-warm);
+      border-radius: 50%;
+      font-family: var(--font-heading);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--forest-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .node-card.type-pivot::before {
+      content: '✦';
+      position: absolute;
+      top: -8px;
+      right: -4px;
+      font-size: 14px;
+      color: var(--accent-warm);
+    }
+
+    .node-card.type-graduation.highlight-path {
+      box-shadow: 0 0 28px rgba(232, 201, 160, 0.55), 0 4px 20px rgba(74, 124, 89, 0.2);
+      animation: gradGlow 2.5s ease-in-out infinite;
+    }
+
+    @keyframes gradGlow {
+      0%, 100% { box-shadow: 0 0 20px rgba(232, 201, 160, 0.45); }
+      50% { box-shadow: 0 0 32px rgba(232, 201, 160, 0.7); }
+    }
+
+    .node-card.type-graduation {
+      border-color: var(--accent-warm);
+      border-width: 2px;
+      background: linear-gradient(135deg, #fff 0%, rgba(232, 201, 160, 0.15) 100%);
+      box-shadow: 0 4px 20px rgba(232, 201, 160, 0.35);
+    }
+
+    .node-card.type-graduation .node-label {
+      font-family: var(--font-heading);
+      font-size: 14px;
+    }
+
+    .node-card.highlight-path {
+      border-color: var(--green-deep);
+      background: rgba(181, 213, 181, 0.3);
+      box-shadow: 0 0 14px rgba(74, 124, 89, 0.35);
+    }
+
+    .node-card.expanded {
+      box-shadow: 0 0 22px rgba(232, 201, 160, 0.75);
+      z-index: 10;
+    }
+
+    /* ── Shared overlay ── */
+    #shared-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(28, 43, 30, 0.4);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 400ms ease-in-out;
+    }
+
+    #shared-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .comment-board-header {
+      position: absolute;
+      top: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 500ms ease-in-out 200ms;
+      pointer-events: none;
+    }
+
+    .comment-board-header.visible {
+      opacity: 1;
+    }
+
+    .comment-board-count {
+      display: block;
+      font-family: var(--font-heading);
+      font-size: 26px;
+      font-weight: 500;
+      color: var(--bg-cream);
+      margin-bottom: 4px;
+    }
+
+    .comment-board-label {
+      font-size: 13px;
+      color: rgba(250, 247, 242, 0.65);
+    }
+
+    .comment-board {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .comment-pin {
+      position: absolute;
+      width: var(--pin-w, 210px);
+      max-width: calc(46vw - 16px);
+      padding: 16px 18px;
+      pointer-events: auto;
+      opacity: 0;
+      transform: rotate(var(--pin-rot, 0deg)) scale(var(--pin-scale, 0.92));
+      transform-origin: center center;
+      transition: opacity 450ms ease-in-out, transform 450ms ease-in-out, box-shadow 450ms ease-in-out;
+      background:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(232, 201, 160, 0.04) 2px,
+          rgba(232, 201, 160, 0.04) 4px
+        ),
+        linear-gradient(145deg, #FFF9F0 0%, #F5EDE0 100%);
+      border-radius: 3px 12px 12px 3px;
+      box-shadow: 2px 5px 18px rgba(28, 43, 30, 0.2);
+      z-index: var(--pin-z, 1);
+      cursor: default;
+    }
+
+    .comment-pin.visible {
+      opacity: var(--pin-opacity, 1);
+      transform: rotate(var(--pin-rot, 0deg)) scale(1);
+    }
+
+    .comment-pin:hover {
+      transform: rotate(var(--pin-rot, 0deg)) scale(1.06);
+      box-shadow: 4px 12px 32px rgba(28, 43, 30, 0.28);
+      z-index: 20;
+      opacity: 1 !important;
+    }
+
+    .comment-pin.size-sm {
+      --pin-w: 158px;
+      padding: 11px 13px;
+    }
+
+    .comment-pin.size-sm p { font-size: 16px; }
+
+    .comment-pin.size-lg {
+      --pin-w: 248px;
+      padding: 18px 20px;
+    }
+
+    .comment-pin.size-lg p { font-size: 21px; }
+
+    .comment-pin:nth-child(odd) {
+      background:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(181, 213, 181, 0.05) 2px,
+          rgba(181, 213, 181, 0.05) 4px
+        ),
+        linear-gradient(148deg, #FFFDF8 0%, #F0EBE3 100%);
+    }
+
+    .comment-pin p {
+      font-family: var(--font-hand);
+      font-size: 19px;
+      line-height: 1.32;
+      color: var(--forest-dark);
+    }
+
+    .comment-pin .comment-author {
+      font-family: var(--font-body);
+      font-size: 10px;
+      color: rgba(28, 43, 30, 0.5);
+      margin-top: 10px;
+      font-style: italic;
+    }
+
+    .comment-meta {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: rgba(250, 247, 242, 0.7);
+      opacity: 0;
+      transition: opacity 400ms ease-in-out 300ms;
+    }
+
+    .comment-meta.visible {
+      opacity: 1;
+    }
+
+    /* ── Export card ── */
+    #export-card {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: var(--bg-cream);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: translateY(100%);
+      transition: transform 600ms ease-in-out;
+    }
+
+    #export-card.visible {
+      transform: translateY(0);
+    }
+
+    .export-card-inner {
+      width: 720px;
+      background: white;
+      border-radius: 24px;
+      padding: 48px;
+      box-shadow: 0 8px 40px rgba(74, 124, 89, 0.12);
+      text-align: center;
+    }
+
+    .export-card-inner h2 {
+      font-family: var(--font-heading);
+      font-size: 36px;
+      font-weight: 500;
+      color: var(--green-deep);
+      margin-bottom: 8px;
+    }
+
+    .export-card-inner .export-subtitle {
+      font-size: 14px;
+      color: rgba(28, 43, 30, 0.5);
+      margin-bottom: 32px;
+    }
+
+    .export-tree-preview {
+      width: 100%;
+      height: 380px;
+      background: var(--bg-cream);
+      border-radius: var(--radius-soft);
+      margin-bottom: 28px;
+      overflow: hidden;
+    }
+
+    .export-tree-preview svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .export-tagline {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-style: italic;
+      color: var(--forest-dark);
+      margin-bottom: 32px;
+      line-height: 1.4;
+    }
+
+    .export-btns {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+    }
+
+    .export-btns .btn-primary {
+      padding: 14px 36px;
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 500;
+      color: white;
+      background: var(--green-deep);
+      border: none;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      transition: background 300ms;
+    }
+
+    .export-btns .btn-primary:hover {
+      background: var(--green-mid);
+    }
+
+    .export-btns .btn-secondary {
+      padding: 14px 36px;
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--green-deep);
+      background: transparent;
+      border: 2px solid var(--green-mid);
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      transition: all 300ms;
+    }
+
+    .export-btns .btn-secondary:hover {
+      background: var(--green-light);
+    }
+
+    .export-back {
+      position: absolute;
+      top: 32px;
+      left: 48px;
+      background: none;
+      border: none;
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--green-deep);
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 300ms;
+    }
+
+    .export-back:hover { opacity: 1; }
+
+    /* Save toast */
+    .save-toast {
+      position: fixed;
+      bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+      left: 50%;
+      transform: translateX(-50%) translateY(120%);
+      z-index: 300;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 22px;
+      background: var(--forest-dark);
+      color: var(--bg-cream);
+      border-radius: var(--radius-pill);
+      font-family: var(--font-body);
+      font-size: 14px;
+      box-shadow: 0 8px 32px rgba(28, 43, 30, 0.35);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 450ms ease-in-out, opacity 450ms ease-in-out;
+      max-width: calc(100vw - 32px);
+      text-align: left;
+    }
+
+    .save-toast.visible {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .save-toast-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--green-mid);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .save-toast-text {
+      line-height: 1.35;
+    }
+
+    .save-toast-text strong {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    .save-toast-text span {
+      font-size: 12px;
+      opacity: 0.75;
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 768px) {
+      html, body, #app {
+        height: 100%;
+        height: 100dvh;
+      }
+
+      .entry-content {
+        padding: 0 24px;
+        max-width: 100%;
+      }
+
+      .entry-content h1 {
+        font-size: 32px;
+        margin-bottom: 32px;
+      }
+
+      .entry-input-wrap {
+        width: 100%;
+        max-width: 280px;
+      }
+
+      .entry-input-wrap input {
+        font-size: 28px;
+      }
+
+      .conversation-wrap {
+        padding: 0 20px;
+      }
+
+      .question-block h2 {
+        font-size: 28px;
+        margin-bottom: 28px;
+      }
+
+      .answer-pills {
+        gap: 10px;
+      }
+
+      .answer-pill {
+        padding: 12px 18px;
+        font-size: 14px;
+        min-height: 44px;
+      }
+
+      .trees-header {
+        padding: 20px 20px 12px;
+        padding-top: calc(20px + env(safe-area-inset-top, 0px));
+      }
+
+      .trees-header h1 {
+        font-size: 26px;
+      }
+
+      .trees-header p {
+        font-size: 13px;
+      }
+
+      .pathway-cards {
+        padding: 0 6vw 8px;
+        gap: 16px;
+      }
+
+      .pathway-card {
+        flex: 0 0 min(320px, 86vw);
+        min-height: 200px;
+        padding: 28px 24px;
+      }
+
+      .pathway-card-title {
+        font-size: 26px;
+      }
+
+      .pathway-detail {
+        top: 72px;
+        padding: 0 16px 20px;
+        padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+      }
+
+      .pathway-detail-top {
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .pathway-detail-title {
+        font-size: 20px;
+        order: 3;
+        flex: 1 1 100%;
+      }
+
+      .pathway-save {
+        margin-left: 0;
+        padding: 10px 18px;
+        font-size: 13px;
+        min-height: 44px;
+      }
+
+      .pathway-back {
+        min-height: 44px;
+      }
+
+      .pathway-detail-body .tree-svg-container {
+        max-width: 100%;
+      }
+
+      .comment-board-count {
+        font-size: 20px;
+      }
+
+      .comment-board-header {
+        top: calc(16px + env(safe-area-inset-top, 0px));
+        padding: 0 16px;
+      }
+
+      .comment-pin {
+        max-width: calc(52vw - 12px);
+      }
+
+      .comment-meta {
+        bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+        font-size: 11px;
+        padding: 0 16px;
+        text-align: center;
+      }
+
+      .export-card-inner {
+        width: calc(100% - 32px);
+        padding: 28px 24px;
+      }
+
+      .export-back {
+        top: calc(16px + env(safe-area-inset-top, 0px));
+        left: 20px;
+      }
+
+      .save-toast {
+        bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+        font-size: 13px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .entry-content h1 {
+        font-size: 26px;
+      }
+
+      .question-block h2 {
+        font-size: 24px;
+      }
+
+      .pathway-card-title {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Screen 1: Entry -->
+    <section id="screen-entry" class="screen active">
+      <canvas id="entry-particles"></canvas>
+      <div class="entry-content">
+        <div class="forge-mark">Forge</div>
+        <h1>What's one word that describes what you want to leave behind?</h1>
+        <div class="entry-input-wrap">
+          <input type="text" id="entry-input" value="" autocomplete="off" spellcheck="false" autofocus>
+        </div>
+        <button class="btn-continue" id="entry-continue">Continue</button>
+      </div>
+    </section>
+
+    <!-- Screen 2: Conversation -->
+    <section id="screen-conversation" class="screen">
+      <div class="conversation-wrap">
+        <div id="question-container"></div>
+        <button class="btn-continue conv-continue" id="conv-continue" style="display:none">Continue</button>
+      </div>
+    </section>
+
+    <!-- Screen 3: Generation -->
+    <section id="screen-generation" class="screen">
+      <div class="gen-canopy"></div>
+      <canvas id="gen-particles"></canvas>
+      <div class="gen-text-wrap">
+        <span class="gen-text active" data-idx="0">Forging your paths...</span>
+        <span class="gen-text" data-idx="1">Mapping your degree...</span>
+        <span class="gen-text" data-idx="2">Finding your intersections...</span>
+        <span class="gen-text" data-idx="3">Connecting you to real paths...</span>
+      </div>
+      <div class="gen-progress-wrap">
+        <div class="gen-progress-bar" id="gen-progress"></div>
+      </div>
+    </section>
+
+    <!-- Screen 4: Trees -->
+    <section id="screen-trees" class="screen bloom-in">
+      <div class="trees-header">
+        <h1>Your Forge</h1>
+        <p id="trees-subtitle">Three paths grew from your answers — scroll and pick one to explore</p>
+      </div>
+      <div class="pathway-browse" id="pathway-browse">
+        <div class="pathway-cards" id="pathway-cards"></div>
+        <p class="pathway-scroll-hint">Scroll sideways · click a path to see your tree</p>
+      </div>
+      <div class="pathway-detail" id="pathway-detail">
+        <div class="pathway-detail-top">
+          <button type="button" class="pathway-back" id="pathway-back">← All paths</button>
+          <button type="button" class="pathway-save" id="pathway-save">Save path</button>
+          <h2 class="pathway-detail-title" id="pathway-detail-title"></h2>
+        </div>
+        <div class="pathway-detail-body" id="pathway-detail-body"></div>
+      </div>
+    </section>
+
+    <!-- Shared node overlay -->
+    <div id="shared-overlay">
+      <div class="comment-board-header" id="comment-board-header">
+        <span class="comment-board-count" id="comment-board-count"></span>
+        <span class="comment-board-label">Notes from students who walked this path</span>
+      </div>
+      <div class="comment-board" id="comment-board"></div>
+      <div class="comment-meta" id="comment-meta">This node appears in 6 different trees.</div>
+    </div>
+
+    <!-- Save toast -->
+    <div id="save-toast" class="save-toast" aria-live="polite" role="status">
+      <div class="save-toast-icon">✓</div>
+      <div class="save-toast-text">
+        <strong id="save-toast-title">Path saved</strong>
+        <span id="save-toast-detail"></span>
+      </div>
+    </div>
+
+    <!-- Export card -->
+    <div id="export-card">
+      <button class="export-back" id="export-back">← Back to forge</button>
+      <div class="export-card-inner">
+        <h2 id="export-legacy-word">Your Forge</h2>
+        <p class="export-subtitle">Neurosurgeon-Founder</p>
+        <div class="export-tree-preview" id="export-tree-preview"></div>
+        <p class="export-tagline">This is your forge for now. It'll grow as you do.</p>
+        <div class="export-btns">
+          <button class="btn-primary">Save to Canva</button>
+          <button class="btn-secondary">Download</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── State Controller ──
+    const screens = {
+      entry: document.getElementById('screen-entry'),
+      conversation: document.getElementById('screen-conversation'),
+      generation: document.getElementById('screen-generation'),
+      trees: document.getElementById('screen-trees'),
+    };
+
+    let currentScreen = 'entry';
+    let genInterval = null;
+
+    let treesInitialized = false;
+    let legacyWord = '';
+    let activeTree = null;
+    let saveToastTimer = null;
+
+    function goTo(name) {
+      Object.values(screens).forEach(s => s.classList.remove('active'));
+      screens[name].classList.add('active');
+      currentScreen = name;
+
+      if (name === 'conversation' && questionContainer.innerHTML === '') {
+        setTimeout(() => renderQuestion(0), 100);
+      }
+      if (name === 'generation') startGeneration();
+      if (name === 'trees' && !treesInitialized) onTreesEnter();
+      if (name !== 'generation' && genInterval) {
+        clearInterval(genInterval);
+        genInterval = null;
+      }
+    }
+
+    // ── Screen 1: Entry ──
+    const entryInput = document.getElementById('entry-input');
+    const entryContinue = document.getElementById('entry-continue');
+
+    entryInput.addEventListener('input', () => {
+      entryContinue.classList.toggle('visible', entryInput.value.trim().length > 0);
+    });
+
+    entryContinue.addEventListener('click', () => {
+      legacyWord = entryInput.value.trim();
+      goTo('conversation');
+    });
+
+    // Entry particles
+    (function initEntryParticles() {
+      const canvas = document.getElementById('entry-particles');
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+
+      function createParticles() {
+        particles = [];
+        for (let i = 0; i < 40; i++) {
+          particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            r: 2 + Math.random() * 4,
+            vx: (Math.random() - 0.5) * 0.3,
+            vy: (Math.random() - 0.5) * 0.2 - 0.1,
+            phase: Math.random() * Math.PI * 2,
+            opacity: 0.08 + Math.random() * 0.12,
+          });
+        }
+      }
+
+      function draw() {
+        if (currentScreen === 'entry') {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          const t = Date.now() * 0.001;
+          particles.forEach(p => {
+            p.x += p.vx + Math.sin(t + p.phase) * 0.15;
+            p.y += p.vy + Math.cos(t * 0.7 + p.phase) * 0.1;
+            if (p.x < -10) p.x = canvas.width + 10;
+            if (p.x > canvas.width + 10) p.x = -10;
+            if (p.y < -10) p.y = canvas.height + 10;
+            if (p.y > canvas.height + 10) p.y = -10;
+
+            ctx.beginPath();
+            ctx.ellipse(p.x, p.y, p.r, p.r * 0.7, 0, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(123, 174, 127, ${p.opacity})`;
+            ctx.fill();
+          });
+        }
+        requestAnimationFrame(draw);
+      }
+
+      resize();
+      createParticles();
+      draw();
+      window.addEventListener('resize', () => { resize(); createParticles(); });
+    })();
+
+    // ── Screen 2: Conversation ──
+    const CONVERSATION_STEPS = [
+      {
+        question: 'What field draws you in?',
+        options: ['Medicine', 'Engineering', 'Arts', 'Business'],
+        multi: false,
+      },
+      {
+        question: 'Within that, what role do you see yourself in?',
+        options: ['Surgeon', 'Researcher', 'Clinician', 'Educator'],
+        multi: false,
+      },
+      {
+        question: 'Any specialisation calling to you?',
+        options: ['Neurosurgery', 'Cardiology', 'Paediatrics', 'General Practice'],
+        multi: false,
+      },
+      {
+        question: 'What else excites you beyond your core path?',
+        options: ['Business & Entrepreneurship', 'Research & Innovation', 'Policy & Advocacy', 'Creative Arts'],
+        multi: true,
+      },
+      {
+        question: 'How do you want to be remembered?',
+        options: ['As someone who healed.', 'As someone who discovered.', 'As someone who built something.', 'As someone who changed systems.'],
+        multi: false,
+      },
+    ];
+
+    let convStep = 0;
+    let convSelections = {};
+    const questionContainer = document.getElementById('question-container');
+    const convContinue = document.getElementById('conv-continue');
+
+    function renderQuestion(stepIdx) {
+      const step = CONVERSATION_STEPS[stepIdx];
+      const block = document.createElement('div');
+      block.className = 'question-block';
+      block.innerHTML = `<h2>${step.question}</h2><div class="answer-pills"></div>`;
+      const pillsWrap = block.querySelector('.answer-pills');
+
+      step.options.forEach(opt => {
+        const pill = document.createElement('button');
+        pill.className = 'pill';
+        pill.textContent = opt;
+
+        pill.addEventListener('click', () => {
+          if (step.multi) {
+            pill.classList.toggle('selected');
+            if (!convSelections[stepIdx]) convSelections[stepIdx] = new Set();
+            if (pill.classList.contains('selected')) {
+              convSelections[stepIdx].add(opt);
+            } else {
+              convSelections[stepIdx].delete(opt);
+            }
+            if (convSelections[stepIdx].size > 0) {
+              convContinue.style.display = 'inline-block';
+              convContinue.classList.add('visible');
+            }
+          } else {
+            pillsWrap.querySelectorAll('.pill').forEach(p => p.classList.remove('selected'));
+            pill.classList.add('selected');
+            setTimeout(() => advanceConversation(stepIdx), 400);
+          }
+        });
+        pillsWrap.appendChild(pill);
+      });
+
+      questionContainer.innerHTML = '';
+      questionContainer.appendChild(block);
+      requestAnimationFrame(() => block.classList.add('visible'));
+
+      convContinue.style.display = 'none';
+      convContinue.classList.remove('visible');
+    }
+
+    function advanceConversation(fromStep) {
+      const block = questionContainer.querySelector('.question-block');
+      if (block) block.classList.add('fading-out');
+
+      setTimeout(() => {
+        convStep = fromStep + 1;
+        if (convStep >= CONVERSATION_STEPS.length) {
+          convContinue.style.display = 'inline-block';
+          convContinue.classList.add('visible');
+          questionContainer.innerHTML = '';
+          const done = document.createElement('div');
+          done.className = 'question-block visible';
+          done.innerHTML = '<h2>Your forge is taking shape.</h2>';
+          questionContainer.appendChild(done);
+        } else {
+          renderQuestion(convStep);
+        }
+      }, 400);
+    }
+
+    convContinue.addEventListener('click', () => {
+      if (convStep >= CONVERSATION_STEPS.length) {
+        goTo('generation');
+      } else if (CONVERSATION_STEPS[convStep].multi) {
+        advanceConversation(convStep);
+      } else {
+        goTo('generation');
+      }
+    });
+
+    // ── Screen 3: Generation ──
+    function startGeneration() {
+      const texts = document.querySelectorAll('.gen-text');
+      let idx = 0;
+      texts.forEach((t, i) => t.classList.toggle('active', i === 0));
+
+      genInterval = setInterval(() => {
+        texts[idx].classList.remove('active');
+        idx = (idx + 1) % texts.length;
+        texts[idx].classList.add('active');
+      }, 1200);
+
+      const bar = document.getElementById('gen-progress');
+      bar.style.transition = 'none';
+      bar.style.width = '0%';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          bar.style.transition = 'width 5s linear';
+          bar.style.width = '100%';
+        });
+      });
+
+      setTimeout(() => goTo('trees'), 5200);
+    }
+
+    // Gen particles
+    (function initGenParticles() {
+      const canvas = document.getElementById('gen-particles');
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+
+      function create() {
+        particles = [];
+        for (let i = 0; i < 60; i++) {
+          particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            r: 1.5 + Math.random() * 3,
+            vy: -0.2 - Math.random() * 0.5,
+            vx: (Math.random() - 0.5) * 0.3,
+            hue: Math.random() > 0.5 ? '123, 174, 127' : '232, 201, 160',
+            opacity: 0.2 + Math.random() * 0.4,
+          });
+        }
+      }
+
+      function draw() {
+        if (currentScreen === 'generation') {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          particles.forEach(p => {
+            p.y += p.vy;
+            p.x += p.vx;
+            if (p.y < -10) { p.y = canvas.height + 10; p.x = Math.random() * canvas.width; }
+            const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 3);
+            grad.addColorStop(0, `rgba(${p.hue}, ${p.opacity})`);
+            grad.addColorStop(1, `rgba(${p.hue}, 0)`);
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r * 3, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.fill();
+          });
+        }
+        requestAnimationFrame(draw);
+      }
+
+      resize();
+      create();
+      draw();
+      window.addEventListener('resize', () => { resize(); create(); });
+    })();
+
+    // ── Tree Data ──
+    const SHARED_IDS = ['mmes', 'generator', 'mgc2230'];
+
+    const SHARED_COMMENTS = {
+      mmes: {
+        totalCount: 24,
+        comments: [
+          { text: 'Joined this in week 3 because a friend dragged me along. Ended up co-founding a startup by third year.', author: 'Priya, Medicine → Health Tech Founder' },
+          { text: 'I was set on being a GP. This made me realise I wanted to build the tools doctors use.', author: 'James, Medicine → Medical Devices' },
+          { text: 'Showed up to one event. Met my co-founder. Still working together two years later.', author: 'Nina, Medicine → Digital Therapeutics' },
+          { text: 'Honestly thought it would be a resume filler. It became the most important thing I did at uni.', author: 'Omar, Medicine → Hospital Operations' },
+          { text: 'Everyone here thinks about medicine differently. That alone changed how I plan my degree.', author: 'Chloe, Medicine → Public Health Policy' },
+          { text: 'Three people from my cohort found their path here. Including me.', author: 'Daniel, Medicine → Surgical Robotics' },
+          { text: 'I kept seeing this node in other students\' forests. Had to see why.', author: 'Aisha, Medicine → Clinical AI' },
+          { text: 'Didn\'t know entrepreneurship was an option in medicine until this society.', author: 'Marcus, Medicine → Medtech Founder' },
+          { text: 'Still get messages from people I met here. The network is the real product.', author: 'Yuki, Medicine → Biotech' },
+          { text: 'My whole forest rerouted after one conversation at MMES.', author: 'Fatima, Medicine → Health Policy' },
+          { text: 'Worth it for the people alone. The startup was a bonus.', author: 'Chris, Medicine → Clinical Software' },
+          { text: 'Saw this node glowing in three paths I explored. Finally clicked it.', author: 'Mia, Medicine → Digital Health' },
+          { text: 'The guest speaker was a surgeon who sold his company. I didn\'t know that was a career.', author: 'Leo, Medicine → Surgical Medtech' },
+          { text: 'My parents wanted hospital medicine. This society gave me permission to want more.', author: 'Anika, Medicine → Health AI' },
+          { text: 'We ran out of chairs at the first event I went to. That energy hooked me.', author: 'Ben, Medicine → Clinical Workflow Tools' },
+          { text: 'Two years later I still DM people from that first mixer.', author: 'Sophie, Medicine → Femtech Founder' },
+          { text: 'It\'s the only club where surgeons and CS students sit at the same table.', author: 'Raj, Medicine → Neurotech' },
+          { text: 'Someone pitched a stethoscope app. Sounded silly. They raised a seed round.', author: 'Tess, Medicine → Digital Diagnostics' },
+          { text: 'I came for networking. Stayed because everyone was actually building.', author: 'Jordan, Medicine → Hospital SaaS' },
+          { text: 'This node shows up everywhere because everyone passes through here eventually.', author: 'Elena, Medicine → Global Health Tech' },
+          { text: 'First time I heard "clinician-founder" as a job title. Changed my vocabulary.', author: 'Will, Medicine → Rehab Robotics' },
+          { text: 'The Slack group alone is worth joining. Deals, mentors, late-night idea threads.', author: 'Hana, Medicine → Mental Health Apps' },
+          { text: 'I almost skipped it. Friend sent the link twice. Grateful they did.', author: 'Oscar, Medicine → Emergency Triage AI' },
+          { text: 'Left every event with three new names in my phone and one new idea.', author: 'Kate, Medicine → Clinical Operations' },
+        ],
+      },
+      generator: {
+        totalCount: 31,
+        comments: [
+          { text: 'Walked in with a napkin sketch. Walked out with a mentor, funding intro, and a co-founder.', author: 'Alex, Medicine → Digital Health' },
+          { text: 'The pitch night changed everything. I stopped thinking like a student and started thinking like a founder.', author: 'Sam, Medicine → Medtech CEO' },
+          { text: 'My idea was terrible. The feedback was generous. The next one wasn\'t.', author: 'Riya, Medicine → Health Analytics' },
+          { text: 'Six teams from my year. Four still running. Two got funded.', author: 'Ethan, Medicine → Remote Diagnostics' },
+          { text: 'This is where I learned that clinicians can build, not just advise.', author: 'Grace, Medicine → Wearable Medtech' },
+          { text: 'Came for the pizza. Stayed because someone believed in the idea.', author: 'Noah, Medicine → Patient Monitoring' },
+          { text: 'Every second person in my hospital placement had done Generator. That told me something.', author: 'Zara, Medicine → Emergency Medtech' },
+          { text: 'The mentors here don\'t treat you like a student. They treat you like a founder.', author: 'Liam, Medicine → Neurotech Startup' },
+          { text: 'Failed twice here before anything worked. Still the best decision I made.', author: 'Ivy, Medicine → Telehealth' },
+          { text: 'Generator alumni keep showing up in my clinical placements. Small world.', author: 'Ryan, Medicine → Hospital Innovation' },
+          { text: 'Built the first prototype in a weekend. Still iterating two years on.', author: 'Amelia, Medicine → Diagnostic AI' },
+          { text: 'Nobody told me med students could pitch to VCs. This place did.', author: 'Dev, Medicine → Surgical Software' },
+          { text: 'Our cohort had a WhatsApp group before we even had a name for the company.', author: 'Tara, Medicine → Chronic Care AI' },
+          { text: 'Pitch deck v1 was on a napkin photo. v12 actually got us a meeting.', author: 'Victor, Medicine → Surgical Navigation' },
+          { text: 'The demo day crowd included actual investors. Terrifying. Worth it.', author: 'Nadia, Medicine → Patient Engagement' },
+          { text: 'I pivoted three times in one semester. Generator normalized the chaos.', author: 'Finn, Medicine → Lab Automation' },
+          { text: 'Met my technical co-founder at the whiteboard wall. Cliché but true.', author: 'Isla, Medicine → Imaging AI' },
+          { text: 'Still use the feedback template from week two in every pitch now.', author: 'Marcus, Medicine → Clinical Decision Support' },
+          { text: 'Someone from my intake just got into YC. We all feel slightly behind.', author: 'Priya, Medicine → Remote Monitoring' },
+          { text: 'The best part: nobody asks why a med student is starting a company.', author: 'Theo, Medicine → Orthopedic Devices' },
+          { text: 'Late nights, bad coffee, good problems. Would repeat.', author: 'Clara, Medicine → Dermatology Tech' },
+          { text: 'Generator alumni keep hiring each other. The pipeline is real.', author: 'Dylan, Medicine → Pharmacy Automation' },
+          { text: 'I thought I needed an MBA first. This proved I needed a prototype.', author: 'Mei, Medicine → Speech Therapy Tech' },
+          { text: 'Our mentor was brutally honest. Saved us six months of wrong direction.', author: 'Jonah, Medicine → ICU Analytics' },
+          { text: 'Half the room had stethoscopes in their bags. Half had laptops. Perfect mix.', author: 'Ava, Medicine → Maternal Health Tech' },
+          { text: 'First revenue came from a hospital that trusted us because we spoke clinical.', author: 'Kyle, Medicine → Wound Care Devices' },
+          { text: 'Every forest I explored had this node glowing. Now I know why.', author: 'Zoe, Medicine → Pediatric Medtech' },
+          { text: 'We failed the first pitch. Got standing applause anyway. Culture matters.', author: 'Hassan, Medicine → Radiology Workflow' },
+          { text: 'Still have the lanyard from demo day on my desk.', author: 'Lily, Medicine → Allergy Diagnostics' },
+          { text: 'Turned a placement observation into a product brief here.', author: 'Owen, Medicine → Ambulance Tech' },
+          { text: 'The room buzzes differently when everyone is trying to ship something.', author: 'Nell, Medicine → Care Pathway AI' },
+        ],
+      },
+      mgc2230: {
+        totalCount: 19,
+        comments: [
+          { text: 'Best elective I almost didn\'t take. Taught me that innovation isn\'t extra — it\'s essential.', author: 'Leila, Medicine → Surgical Robotics' },
+          { text: 'This unit connected my clinical interests to real market problems. Game changer.', author: 'Tom, Medicine → Neurotech Founder' },
+          { text: 'Showed up in four different trees I explored. Clearly a crossroads for a reason.', author: 'Hannah, Medicine → Health Systems Design' },
+          { text: 'The group project became my startup. We still pitch it sometimes.', author: 'Ben, Medicine → Chronic Care Platform' },
+          { text: 'I thought electives were for checking boxes. This one rewired how I think.', author: 'Sofia, Medicine → Global Health Tech' },
+          { text: 'Half my tutorial ended up in entrepreneurship paths. Not a coincidence.', author: 'Kai, Medicine → Medical Devices' },
+          { text: 'First time a unit made me feel like I could build, not just study.', author: 'Emma, Medicine → AI Diagnostics' },
+          { text: 'My tutor said most founders in med pass through here. I believe it now.', author: 'Jake, Medicine → Rehab Technology' },
+          { text: 'The assessment felt like a startup pitch. That was the point.', author: 'Lucy, Medicine → Mental Health Tech' },
+          { text: 'Changed my whole elective strategy after this unit.', author: 'Arjun, Medicine → Precision Medicine' },
+          { text: 'Still quote my tutor in investor meetings. Embarrassing but true.', author: 'Ella, Medicine → Femtech' },
+          { text: 'Everyone in my study group ended up on a builder path somehow.', author: 'Noah, Medicine → Health Data' },
+          { text: 'The case studies were real startups, not textbook fiction.', author: 'Mira, Medicine → Neurotech Founder' },
+          { text: 'I picked this over an easy HD elective. Best trade I ever made.', author: 'Sean, Medicine → Clinical Trials Tech' },
+          { text: 'Tutorial debates got heated. In a good way.', author: 'Ingrid, Medicine → Public Health Analytics' },
+          { text: 'Linked my neuroscience interest to a market map assignment. Mind blown.', author: 'Ravi, Medicine → Brain Monitoring' },
+          { text: 'Three people from my tute ended up at Generator the next semester.', author: 'Claire, Medicine → Care Coordination' },
+          { text: 'The final wasn\'t an exam. It was a pitch. Terrifying and perfect.', author: 'Wei, Medicine → Surgical AI' },
+          { text: 'My tutor\'s red pen comments read like investor feedback. Prepared me well.', author: 'Gabe, Medicine → Health Economics' },
+        ],
+      },
+    };
+
+    const TREES = [
+      {
+        id: 'tree1',
+        title: 'Neurosurgeon-Founder',
+        viewBox: '0 0 620 920',
+        nodeW: 172,
+        nodeH: 82,
+        gradW: 200,
+        gradH: 90,
+        convW: 212,
+        convH: 96,
+        nodes: [
+          { id: 't1-med1011', year: 'Year 1', label: 'MED1011', desc: 'Foundations of medical practice', type: 'regular', x: 310, y: 30 },
+          { id: 't1-ns-track', year: 'Year 1', label: 'Neuroscience Track', desc: 'Early interest in the brain', type: 'regular', x: 130, y: 120 },
+          { id: 't1-ent-track', year: 'Year 1', label: 'Entrepreneurship Track', desc: 'Curiosity about building things', type: 'regular', x: 490, y: 120 },
+          { id: 't1-med2031', year: 'Year 2', label: 'MED2031 Neuroscience Foundations', desc: 'Deep dive into neural systems', type: 'regular', x: 80, y: 220 },
+          { id: 't1-alfred', year: 'Year 2', label: 'Alfred Hospital Clinical Placement', desc: 'First hands-on surgical exposure', type: 'regular', x: 80, y: 320 },
+          { id: 't1-bci', year: 'Year 3', label: 'Brain-Computer Interface Research Lab', desc: 'Bridging neuroscience and technology', type: 'regular', x: 80, y: 420 },
+          { id: 'mmes', sharedKey: 'mmes', year: 'Year 2', label: 'Monash Medical Entrepreneurship Society', desc: 'Community of clinician-builders', type: 'shared', x: 490, y: 220 },
+          { id: 'generator', sharedKey: 'generator', year: 'Year 2', label: 'Monash Generator Startup Program', desc: 'Turning ideas into ventures', type: 'shared', x: 490, y: 320 },
+          { id: 'mgc2230', sharedKey: 'mgc2230', year: 'Year 3', label: 'MGC2230 Entrepreneurship & Innovation', desc: 'Structured innovation thinking', type: 'shared', x: 490, y: 420 },
+          { id: 't1-medtech', year: 'Year 4', label: 'Medtech Research Project', desc: 'Where clinical and entrepreneurial paths meet', type: 'convergence', x: 310, y: 530 },
+          { id: 't1-publish', year: 'Year 4', label: 'Publish Research Paper', desc: 'Contributing to surgical literature', type: 'regular', x: 130, y: 640 },
+          { id: 't1-accel', year: 'Year 4', label: 'Join Medtech Accelerator', desc: 'Scaling a surgical innovation', type: 'regular', x: 490, y: 640 },
+          { id: 't1-patent', year: 'Year 5', label: 'Patent a Surgical Tool', desc: 'From idea to intellectual property', type: 'regular', x: 130, y: 740 },
+          { id: 't1-seed', year: 'Year 5', label: 'Secure Seed Funding', desc: 'Building the company behind the tool', type: 'regular', x: 490, y: 740 },
+          { id: 't1-grad', year: 'Year 5', label: 'Graduation', desc: 'Neurosurgeon. Founder. Ready.', type: 'graduation', x: 310, y: 840 },
+        ],
+        edges: [
+          { from: 't1-med1011', to: 't1-ns-track' },
+          { from: 't1-med1011', to: 't1-ent-track' },
+          { from: 't1-ns-track', to: 't1-med2031' },
+          { from: 't1-med2031', to: 't1-alfred' },
+          { from: 't1-alfred', to: 't1-bci' },
+          { from: 't1-ent-track', to: 'mmes' },
+          { from: 'mmes', to: 'generator' },
+          { from: 'generator', to: 'mgc2230' },
+          { from: 't1-bci', to: 't1-medtech' },
+          { from: 'mgc2230', to: 't1-medtech' },
+          { from: 't1-medtech', to: 't1-publish' },
+          { from: 't1-medtech', to: 't1-accel' },
+          { from: 't1-publish', to: 't1-patent' },
+          { from: 't1-accel', to: 't1-seed' },
+          { from: 't1-patent', to: 't1-grad' },
+          { from: 't1-seed', to: 't1-grad' },
+        ],
+        highlightPath: ['t1-med1011', 't1-ent-track', 'mmes', 'generator', 'mgc2230', 't1-medtech', 't1-accel', 't1-seed', 't1-grad'],
+      },
+      {
+        id: 'tree2',
+        title: 'Medical Innovator',
+        viewBox: '0 0 620 880',
+        nodeW: 172,
+        nodeH: 82,
+        gradW: 200,
+        gradH: 90,
+        convW: 212,
+        convH: 96,
+        nodes: [
+          { id: 't2-med1011', year: 'Year 1', label: 'MED1011', desc: 'Foundations of medical practice', type: 'regular', x: 310, y: 30 },
+          { id: 't2-hsd', year: 'Year 2', label: 'Health Systems Design Elective', desc: 'Rethinking how care is delivered', type: 'regular', x: 80, y: 140 },
+          { id: 't2-mmes', sharedKey: 'mmes', year: 'Year 2', label: 'Monash Medical Entrepreneurship Society', desc: 'Community of clinician-builders', type: 'shared', x: 310, y: 140 },
+          { id: 't2-mgc', sharedKey: 'mgc2230', year: 'Year 2', label: 'MGC2230 Entrepreneurship & Innovation', desc: 'Structured innovation thinking', type: 'shared', x: 540, y: 140 },
+          { id: 't2-who', year: 'Year 3', label: 'WHO Global Health Internship', desc: 'Systems-level health perspective', type: 'regular', x: 80, y: 280 },
+          { id: 't2-htintern', year: 'Year 3', label: 'Health Tech Startup Internship', desc: 'Building at the frontier of care', type: 'regular', x: 310, y: 280 },
+          { id: 't2-gen', sharedKey: 'generator', year: 'Year 3', label: 'Monash Generator Startup Program', desc: 'Turning ideas into ventures', type: 'shared', x: 540, y: 280 },
+          { id: 't2-pivot', year: 'Year 3', label: 'Realise you want to build systems, not just practice medicine', desc: 'A mindset shift', type: 'pivot', x: 310, y: 420 },
+          { id: 't2-venture', year: 'Year 4', label: 'Health Tech Venture', desc: 'All paths converge on building', type: 'convergence', x: 310, y: 560 },
+          { id: 't2-grad', year: 'Year 5', label: 'Graduation', desc: 'Innovator. Systems thinker. Ready.', type: 'graduation', x: 310, y: 720 },
+        ],
+        edges: [
+          { from: 't2-med1011', to: 't2-hsd' },
+          { from: 't2-med1011', to: 't2-mmes' },
+          { from: 't2-med1011', to: 't2-mgc' },
+          { from: 't2-hsd', to: 't2-who' },
+          { from: 't2-mmes', to: 't2-htintern' },
+          { from: 't2-mgc', to: 't2-gen' },
+          { from: 't2-who', to: 't2-pivot' },
+          { from: 't2-htintern', to: 't2-pivot' },
+          { from: 't2-gen', to: 't2-pivot' },
+          { from: 't2-pivot', to: 't2-venture' },
+          { from: 't2-htintern', to: 't2-venture' },
+          { from: 't2-gen', to: 't2-venture' },
+          { from: 't2-venture', to: 't2-grad' },
+        ],
+        highlightPath: ['t2-med1011', 't2-mmes', 't2-htintern', 't2-pivot', 't2-venture', 't2-grad'],
+      },
+      {
+        id: 'tree3',
+        title: 'The Unexpected Path',
+        viewBox: '0 0 620 920',
+        nodeW: 168,
+        nodeH: 80,
+        gradW: 196,
+        gradH: 88,
+        convW: 208,
+        convH: 94,
+        nodes: [
+          { id: 't3-med1011', year: 'Year 1', label: 'MED1011', desc: 'Foundations of medical practice', type: 'regular', x: 310, y: 30 },
+          { id: 't3-conv', year: 'Year 1', label: 'Conventional First Year', desc: 'Following the expected path', type: 'regular', x: 310, y: 110 },
+          { id: 't3-doubt', year: 'Year 2', label: 'What if medicine isn\'t the whole story?', desc: 'A moment of doubt becomes a doorway', type: 'doubt', x: 310, y: 222 },
+          { id: 't3-neuroeth', year: 'Year 2', label: 'Neuroethics & AI Elective', desc: 'Questions at the edge of medicine', type: 'regular', x: 60, y: 332 },
+          { id: 't3-phil', year: 'Year 2', label: 'Philosophy of Mind Elective', desc: 'Accidental discovery', type: 'regular', x: 310, y: 332 },
+          { id: 't3-hack', year: 'Year 2', label: 'Hackathon Entry', desc: 'A spontaneous yes', type: 'regular', x: 560, y: 332 },
+          { id: 't3-ailab', year: 'Year 3', label: 'AI in Healthcare Lab', desc: 'Ethics meets engineering', type: 'regular', x: 60, y: 452 },
+          { id: 't3-guest', year: 'Year 3', label: 'Guest Lecture by Health Tech Founder', desc: 'One talk, new direction', type: 'regular', x: 310, y: 452 },
+          { id: 't3-won', year: 'Year 3', label: 'Won the Hackathon', desc: 'Validation from unexpected place', type: 'regular', x: 560, y: 452 },
+          { id: 't3-email', year: 'Year 3', label: 'Cold Emailed Them', desc: 'Boldness rewarded', type: 'regular', x: 310, y: 532 },
+          { id: 't3-research', year: 'Year 3', label: 'Offered a Research Role', desc: 'Doors opened by showing up', type: 'regular', x: 560, y: 532 },
+          { id: 't3-paper', year: 'Year 3', label: 'Research Paper on Ethical AI in Surgery', desc: 'Every wild path led here', type: 'convergence', x: 310, y: 632 },
+          { id: 't3-conf', year: 'Year 4', label: 'Conference Speaking', desc: 'Voice heard on global stage', type: 'regular', x: 130, y: 742 },
+          { id: 't3-policy', year: 'Year 4', label: 'Policy Advisory Role', desc: 'Shaping health AI governance', type: 'regular', x: 490, y: 742 },
+          { id: 't3-global', year: 'Year 5', label: 'Global Recognition', desc: 'Thought leader in surgical AI ethics', type: 'regular', x: 130, y: 832 },
+          { id: 't3-gov', year: 'Year 5', label: 'Government Health AI Brief', desc: 'Policy impact at national scale', type: 'regular', x: 490, y: 832 },
+          { id: 't3-grad', year: 'Year 5', label: 'Graduation', desc: 'The path nobody planned — and the right one.', type: 'graduation', x: 310, y: 892 },
+        ],
+        edges: [
+          { from: 't3-med1011', to: 't3-conv' },
+          { from: 't3-conv', to: 't3-doubt' },
+          { from: 't3-doubt', to: 't3-neuroeth' },
+          { from: 't3-doubt', to: 't3-phil' },
+          { from: 't3-doubt', to: 't3-hack' },
+          { from: 't3-neuroeth', to: 't3-ailab' },
+          { from: 't3-phil', to: 't3-guest' },
+          { from: 't3-guest', to: 't3-email' },
+          { from: 't3-hack', to: 't3-won' },
+          { from: 't3-won', to: 't3-research' },
+          { from: 't3-ailab', to: 't3-paper' },
+          { from: 't3-email', to: 't3-paper' },
+          { from: 't3-research', to: 't3-paper' },
+          { from: 't3-paper', to: 't3-conf' },
+          { from: 't3-paper', to: 't3-policy' },
+          { from: 't3-conf', to: 't3-global' },
+          { from: 't3-policy', to: 't3-gov' },
+          { from: 't3-global', to: 't3-grad' },
+          { from: 't3-gov', to: 't3-grad' },
+          { from: 't3-hack', to: 't3-conv', loop: true },
+        ],
+        highlightPath: ['t3-med1011', 't3-conv', 't3-doubt', 't3-phil', 't3-guest', 't3-email', 't3-paper', 't3-conf', 't3-global', 't3-grad'],
+      },
+    ];
+
+    // ── SVG Tree Renderer ──
+    function getNodeWidth(node, tree) {
+      if (node.type === 'graduation') return tree.gradW;
+      if (node.type === 'convergence' || node.type === 'pivot' || node.type === 'doubt') return tree.convW;
+      return tree.nodeW;
+    }
+
+    function getMinNodeHeight(node, tree) {
+      if (node.type === 'graduation') return tree.gradH;
+      if (node.type === 'convergence' || node.type === 'pivot' || node.type === 'doubt') return tree.convH;
+      return tree.nodeH;
+    }
+
+    function computeNodeHeight(node, tree) {
+      const w = getNodeWidth(node, tree);
+      const innerW = w - 20;
+      const labelChars = Math.max(14, Math.floor(innerW / 6.2));
+      const descChars = Math.max(16, Math.floor(innerW / 5.4));
+      const yearH = node.year ? 13 : 0;
+      const labelLines = Math.max(1, Math.ceil(node.label.length / labelChars));
+      const descLines = Math.max(1, Math.ceil(node.desc.length / descChars));
+      const labelLineH = node.type === 'graduation' ? 17 : 14;
+      const contentH = yearH + labelLines * labelLineH + descLines * 12 + 16;
+      return Math.max(getMinNodeHeight(node, tree), contentH);
+    }
+
+    function buildNodeHeights(tree) {
+      const heights = {};
+      tree.nodes.forEach(node => {
+        heights[node.id] = computeNodeHeight(node, tree);
+      });
+      return heights;
+    }
+
+    function nodeCenter(node, tree, heights) {
+      const w = getNodeWidth(node, tree);
+      const h = heights[node.id];
+      return { cx: node.x, cy: node.y + h / 2, top: node.y, bottom: node.y + h, left: node.x - w / 2, w, h };
+    }
+
+    function bezierPath(fromNode, toNode, tree, heights) {
+      const f = nodeCenter(fromNode, tree, heights);
+      const t = nodeCenter(toNode, tree, heights);
+      const x1 = f.cx, y1 = f.bottom;
+      const x2 = t.cx, y2 = t.top;
+      const dy = y2 - y1;
+      const spread = Math.abs(x2 - x1) * 0.3 + 30;
+      const cp1x = x1 + (x2 > x1 ? spread * 0.3 : -spread * 0.3);
+      const cp1y = y1 + dy * 0.4;
+      const cp2x = x2 - (x2 > x1 ? spread * 0.3 : -spread * 0.3);
+      const cp2y = y2 - dy * 0.4;
+      return `M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`;
+    }
+
+    function computeTreeViewBox(tree, nodeHeights) {
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+
+      tree.nodes.forEach(node => {
+        const w = getNodeWidth(node, tree);
+        const h = nodeHeights[node.id];
+        const badgeTop = (node.type === 'doubt' || node.type === 'pivot') ? 12 : 0;
+        const glowPad = (node.type === 'graduation' || node.type === 'shared') ? 8 : 0;
+        minX = Math.min(minX, node.x - w / 2);
+        minY = Math.min(minY, node.y - badgeTop);
+        maxX = Math.max(maxX, node.x + w / 2);
+        maxY = Math.max(maxY, node.y + h + glowPad);
+      });
+
+      const pad = { top: 24, right: 28, bottom: 36, left: 28 };
+      const x = minX - pad.left;
+      const y = minY - pad.top;
+      const w = maxX - minX + pad.left + pad.right;
+      const h = maxY - minY + pad.top + pad.bottom;
+      return `${x} ${y} ${w} ${h}`;
+    }
+
+    function renderTree(tree, container, options = {}) {
+      const { highlightPath = [], compact = false } = options;
+      const highlightSet = new Set(highlightPath);
+      const nodeMap = {};
+      tree.nodes.forEach(n => { nodeMap[n.id] = n; });
+      const nodeHeights = buildNodeHeights(tree);
+
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', computeTreeViewBox(tree, nodeHeights));
+      svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+
+      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      svg.appendChild(defs);
+
+      const edgesG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      tree.edges.forEach(edge => {
+        const from = nodeMap[edge.from];
+        const to = nodeMap[edge.to];
+        if (!from || !to) return;
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', bezierPath(from, to, tree, nodeHeights));
+        let cls = 'tree-edge';
+        if (edge.loop) cls += ' loop';
+        if (highlightSet.has(edge.from) && highlightSet.has(edge.to)) cls += ' highlight';
+        path.setAttribute('class', cls);
+        edgesG.appendChild(path);
+      });
+      svg.appendChild(edgesG);
+
+      const nodesG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      tree.nodes.forEach(node => {
+        const w = getNodeWidth(node, tree);
+        const h = nodeHeights[node.id];
+        const fo = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+        fo.setAttribute('x', node.x - w / 2);
+        fo.setAttribute('y', node.y);
+        fo.setAttribute('width', w);
+        fo.setAttribute('height', h);
+
+        const div = document.createElement('div');
+        div.className = 'node-card type-' + node.type + (highlightSet.has(node.id) ? ' highlight-path' : '');
+        div.dataset.nodeId = node.id;
+        div.innerHTML = `
+          <div class="node-year">${node.year}</div>
+          <div class="node-label">${node.label}</div>
+          <div class="node-desc">${node.desc}</div>
+        `;
+
+        if (node.type === 'shared' && !compact) {
+          div.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openSharedOverlay(node.sharedKey || node.id, div);
+          });
+        }
+
+        fo.appendChild(div);
+        nodesG.appendChild(fo);
+      });
+      svg.appendChild(nodesG);
+
+      container.innerHTML = '';
+      container.appendChild(svg);
+      return svg;
+    }
+
+    // ── Render pathway browse + detail ──
+    function onTreesEnter() {
+      treesInitialized = true;
+      const cardsEl = document.getElementById('pathway-cards');
+      cardsEl.innerHTML = '';
+
+      TREES.forEach(tree => {
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'pathway-card';
+        card.innerHTML = `
+          <span class="pathway-card-title">${tree.title}</span>
+          <span class="pathway-card-cta">Explore this path →</span>
+        `;
+        card.addEventListener('click', () => openPathway(tree.id));
+        cardsEl.appendChild(card);
+      });
+
+      document.getElementById('pathway-back').addEventListener('click', closePathway);
+      document.getElementById('pathway-save').addEventListener('click', fakeSavePath);
+    }
+
+    function slugify(text) {
+      return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    }
+
+    function showSaveToast(title, filename, format) {
+      const toast = document.getElementById('save-toast');
+      document.getElementById('save-toast-title').textContent = title;
+      document.getElementById('save-toast-detail').textContent =
+        `${filename}.${format} · saved to Downloads`;
+      toast.classList.add('visible');
+      clearTimeout(saveToastTimer);
+      saveToastTimer = setTimeout(() => toast.classList.remove('visible'), 3200);
+    }
+
+    function fakeSavePath() {
+      if (!activeTree) return;
+      const btn = document.getElementById('pathway-save');
+      btn.classList.add('saving');
+      btn.textContent = 'Saving…';
+
+      const slug = slugify(activeTree.title);
+      const format = Math.random() > 0.5 ? 'png' : 'pdf';
+
+      setTimeout(() => {
+        btn.classList.remove('saving');
+        btn.textContent = 'Save path';
+        showSaveToast('Path saved', `forge-${slug}`, format);
+      }, 900);
+    }
+
+    function openPathway(treeId) {
+      const tree = TREES.find(t => t.id === treeId);
+      if (!tree) return;
+
+      activeTree = tree;
+
+      document.getElementById('pathway-browse').classList.add('hidden');
+      document.getElementById('pathway-detail').classList.add('open');
+      document.getElementById('pathway-detail-title').textContent = tree.title;
+      document.getElementById('trees-subtitle').textContent = 'Follow the branches — tap glowing nodes to see who else walked here';
+
+      const body = document.getElementById('pathway-detail-body');
+      body.innerHTML = '<div class="tree-svg-container"></div>';
+      renderTree(tree, body.querySelector('.tree-svg-container'));
+    }
+
+    function closePathway() {
+      activeTree = null;
+      document.getElementById('pathway-browse').classList.remove('hidden');
+      document.getElementById('pathway-detail').classList.remove('open');
+      document.getElementById('trees-subtitle').textContent = 'Three paths grew from your answers — scroll and pick one to explore';
+    }
+
+    // ── Shared overlay ──
+    let activeSharedNode = null;
+
+    const PIN_SIZES = { sm: { w: 158, h: 108 }, md: { w: 210, h: 130 }, lg: { w: 248, h: 148 } };
+    const PIN_GAP = -14;
+
+    function hashSeed(str) {
+      let seed = 0;
+      for (let i = 0; i < str.length; i++) seed = (seed + str.charCodeAt(i) * (i + 3)) % 997;
+      return seed || 1;
+    }
+
+    function seededRand(seed) {
+      return (seed * 1103515245 + 12345) & 0x7fffffff;
+    }
+
+    function generateScatterSlots(count, seedKey) {
+      let seed = hashSeed(seedKey);
+      const slots = [];
+      for (let i = 0; i < count; i++) {
+        seed = seededRand(seed + i * 17);
+        const xp = 0.01 + (seed % 940) / 1000;
+        seed = seededRand(seed);
+        const yp = 0.07 + (seed % 860) / 1000;
+        seed = seededRand(seed);
+        const rot = -14 + (seed % 29);
+        seed = seededRand(seed);
+        const z = 1 + (seed % 12);
+        seed = seededRand(seed);
+        const sizeKey = ['sm', 'md', 'lg'][seed % 3];
+        seed = seededRand(seed);
+        const opacity = 0.82 + (seed % 19) / 100;
+        slots.push({ xp, yp, rot, z, sizeKey, opacity });
+      }
+      return slots;
+    }
+
+    function expandRect(rect, pad) {
+      return {
+        left: rect.left - pad,
+        top: rect.top - pad,
+        right: rect.right + pad,
+        bottom: rect.bottom + pad,
+      };
+    }
+
+    function rectsOverlap(a, b, gap = PIN_GAP) {
+      return !(a.right + gap <= b.left || a.left >= b.right + gap || a.bottom + gap <= b.top || a.top >= b.bottom + gap);
+    }
+
+    function layoutCommentPins(count, nodeRect, seedKey) {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const pad = 8;
+      const topPad = 78;
+      const botPad = 42;
+      const avoid = expandRect(nodeRect, 28);
+      const placements = [];
+      const slots = generateScatterSlots(count, seedKey);
+      let seed = hashSeed(seedKey);
+
+      function clamp(x, y, pinW, pinH) {
+        return {
+          x: Math.max(pad, Math.min(x, vw - pinW - pad)),
+          y: Math.max(topPad, Math.min(y, vh - pinH - botPad)),
+        };
+      }
+
+      function tryPlace(x, y, rot, z, sizeKey, opacity, gap = PIN_GAP, avoidNode = true) {
+        const { w: pinW, h: pinH } = PIN_SIZES[sizeKey] || PIN_SIZES.md;
+        let { x: cx, y: cy } = clamp(x, y, pinW, pinH);
+        const pinCx = cx + pinW / 2;
+        const pinCy = cy + pinH / 2;
+
+        if (avoidNode && pinCx > avoid.left && pinCx < avoid.right && pinCy > avoid.top && pinCy < avoid.bottom) {
+          const toLeft = avoid.left - pinW - pad;
+          const toRight = avoid.right + pad;
+          cx = (avoid.left - pinCx) > (pinCx - avoid.right) ? toLeft : toRight;
+          ({ x: cx, y: cy } = clamp(cx, cy, pinW, pinH));
+        }
+
+        const rect = {
+          left: cx,
+          top: cy,
+          right: cx + pinW,
+          bottom: cy + pinH,
+        };
+        if (avoidNode && rectsOverlap(rect, avoid, 0)) return null;
+        for (const p of placements) {
+          if (rectsOverlap(rect, p.rect, gap)) return null;
+        }
+        return { x: cx, y: cy, rot, z, sizeKey, opacity, rect };
+      }
+
+      for (let i = 0; i < count; i++) {
+        const slot = slots[i];
+        seed = seededRand(seed + i * 41);
+        const jx = ((seed % 17) - 8) * 7;
+        seed = seededRand(seed);
+        const jy = ((seed % 13) - 6) * 8;
+        const x = slot.xp * vw + jx;
+        const y = slot.yp * vh + jy;
+        const rot = slot.rot + ((seed % 9) - 4);
+        let placed = tryPlace(x, y, rot, slot.z, slot.sizeKey, slot.opacity);
+
+        if (!placed) {
+          for (let n = 1; n <= 18 && !placed; n++) {
+            placed = tryPlace(
+              x + (n % 2 ? 1 : -1) * (14 + n * 9),
+              y + (n % 3 - 1) * (12 + n * 7),
+              rot + (n % 2 ? 2 : -2),
+              slot.z + (n % 3),
+              slot.sizeKey,
+              slot.opacity,
+              PIN_GAP - (n > 10 ? 10 : 0),
+              n <= 12
+            );
+          }
+        }
+
+        if (!placed) {
+          placed = tryPlace(x, y, rot, slot.z, slot.sizeKey, slot.opacity, -28, false);
+        }
+
+        if (placed) placements.push(placed);
+      }
+
+      return placements;
+    }
+
+    function openSharedOverlay(sharedId, nodeEl) {
+      const overlay = document.getElementById('shared-overlay');
+      const board = document.getElementById('comment-board');
+      const header = document.getElementById('comment-board-header');
+      const meta = document.getElementById('comment-meta');
+      const rect = nodeEl.getBoundingClientRect();
+      const data = SHARED_COMMENTS[sharedId];
+      const comments = (data?.comments || []).filter(c => c.text?.trim() && c.author?.trim());
+      const displayComments = comments.slice(0, data.totalCount || comments.length);
+
+      if (!data || !displayComments.length) return;
+
+      nodeEl.classList.add('expanded');
+      activeSharedNode = nodeEl;
+
+      document.getElementById('comment-board-count').textContent =
+        `${data.totalCount} notes on this node`;
+      meta.textContent =
+        `This node appears in 6 different trees · ${data.totalCount} students left a note`;
+
+      board.innerHTML = '';
+      const slots = layoutCommentPins(displayComments.length, rect, sharedId);
+
+      displayComments.forEach((c, i) => {
+        const slot = slots[i];
+        if (!slot || !c.text.trim()) return;
+        const pin = document.createElement('div');
+        pin.className = 'comment-pin' + (slot.sizeKey ? ' size-' + slot.sizeKey : '');
+        pin.style.left = slot.x + 'px';
+        pin.style.top = slot.y + 'px';
+        pin.style.setProperty('--pin-rot', slot.rot + 'deg');
+        pin.style.setProperty('--pin-z', slot.z);
+        pin.style.setProperty('--pin-w', (PIN_SIZES[slot.sizeKey]?.w || 210) + 'px');
+        pin.style.setProperty('--pin-opacity', slot.opacity ?? 1);
+        pin.innerHTML = `<p>${c.text}</p><div class="comment-author">— ${c.author}</div>`;
+        if (!pin.textContent.trim()) return;
+        pin.addEventListener('click', (e) => e.stopPropagation());
+        board.appendChild(pin);
+        setTimeout(() => pin.classList.add('visible'), 30 + i * 28);
+      });
+
+      overlay.classList.add('visible');
+      setTimeout(() => {
+        header.classList.add('visible');
+        meta.classList.add('visible');
+      }, 100);
+    }
+
+    function closeSharedOverlay() {
+      const overlay = document.getElementById('shared-overlay');
+      const board = document.getElementById('comment-board');
+      const header = document.getElementById('comment-board-header');
+      const meta = document.getElementById('comment-meta');
+      board.querySelectorAll('.comment-pin').forEach(p => p.classList.remove('visible'));
+      header.classList.remove('visible');
+      overlay.classList.remove('visible');
+      meta.classList.remove('visible');
+      if (activeSharedNode) {
+        activeSharedNode.classList.remove('expanded');
+        activeSharedNode = null;
+      }
+      setTimeout(() => { board.innerHTML = ''; }, 400);
+    }
+
+    document.getElementById('shared-overlay').addEventListener('click', (e) => {
+      if (e.target.id === 'shared-overlay') closeSharedOverlay();
+    });
+
+    document.getElementById('export-back').addEventListener('click', () => {
+      document.getElementById('export-card').classList.remove('visible');
+    });
+
+    function syncLegacyWordDisplay() {
+      const label = legacyWord || 'Your Forge';
+      const exportWord = document.getElementById('export-legacy-word');
+      if (exportWord) exportWord.textContent = label;
+    }
+
+    syncLegacyWordDisplay();
+    entryInput.addEventListener('input', syncLegacyWordDisplay);
+
+  </script>
+</body>
+</html>
