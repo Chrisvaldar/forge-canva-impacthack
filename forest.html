@@ -40,6 +40,7 @@
       inset: 0;
       width: 100vw;
       height: 100vh;
+      height: 100dvh;
     }
 
     .screen {
@@ -432,6 +433,17 @@
       transform: scale(0.98);
       transition: opacity var(--transition), transform var(--transition);
       padding: 0 48px 32px;
+      min-height: 0;
+    }
+
+    #screen-trees.pathway-open .trees-header {
+      display: none;
+    }
+
+    #screen-trees.pathway-open .pathway-detail {
+      top: 0;
+      padding: 0;
+      z-index: 2;
     }
 
     .pathway-detail.open {
@@ -507,19 +519,32 @@
       flex: 1;
       min-height: 0;
       overflow-y: auto;
-      overflow-x: hidden;
-      display: flex;
-      justify-content: center;
+      overflow-x: auto;
+      display: block;
       padding: 12px 0 48px;
       scrollbar-width: thin;
       scrollbar-color: var(--green-light) transparent;
       -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      touch-action: pan-y pan-x;
     }
 
     .pathway-detail-body .tree-svg-container {
       width: 100%;
       max-width: 660px;
+      margin: 0 auto;
       overflow: visible;
+      padding: 0 8px 32px;
+      box-sizing: border-box;
+    }
+
+    .pathway-detail-hint {
+      display: none;
+      flex-shrink: 0;
+      text-align: center;
+      font-size: 12px;
+      color: rgba(28, 43, 30, 0.45);
+      padding: 0 16px 10px;
     }
 
     .tree-svg-container {
@@ -1095,36 +1120,84 @@
       }
 
       .pathway-detail {
-        top: 72px;
-        padding: 0 16px 20px;
-        padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+        top: 0;
+        padding: 0;
       }
 
       .pathway-detail-top {
-        flex-wrap: wrap;
-        gap: 12px;
-        margin-bottom: 12px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        gap: 10px 12px;
+        margin-bottom: 0;
+        padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 12px;
+        border-bottom: 1px solid rgba(181, 213, 181, 0.35);
+        background: var(--bg-cream);
+        flex-shrink: 0;
       }
 
-      .pathway-detail-title {
-        font-size: 20px;
-        order: 3;
-        flex: 1 1 100%;
+      .pathway-back {
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: start;
+        min-height: 44px;
       }
 
       .pathway-save {
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: end;
         margin-left: 0;
         padding: 10px 18px;
         font-size: 13px;
         min-height: 44px;
       }
 
-      .pathway-back {
-        min-height: 44px;
+      .pathway-detail-title {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        font-size: 18px;
+        line-height: 1.25;
+        order: unset;
+        flex: unset;
+      }
+
+      .pathway-detail-hint {
+        display: block;
+        padding: 8px 16px 4px;
+        font-size: 11px;
+      }
+
+      .pathway-detail-body {
+        flex: 1;
+        min-height: 0;
+        padding: 8px 0 calc(24px + env(safe-area-inset-bottom, 0px));
       }
 
       .pathway-detail-body .tree-svg-container {
         max-width: 100%;
+        padding: 0 4px 48px;
+      }
+
+      .pathway-detail-body .node-card {
+        padding: 6px 8px;
+      }
+
+      .pathway-detail-body .node-card .node-label {
+        font-size: 10px;
+      }
+
+      .pathway-detail-body .node-card .node-desc {
+        font-size: 8px;
+        line-height: 1.25;
+      }
+
+      .pathway-detail-body .node-card .node-year {
+        font-size: 8px;
+      }
+
+      .pathway-detail-body .node-card.type-graduation .node-label {
+        font-size: 12px;
       }
 
       .comment-board-count {
@@ -1232,6 +1305,7 @@
           <button type="button" class="pathway-save" id="pathway-save">Save path</button>
           <h2 class="pathway-detail-title" id="pathway-detail-title"></h2>
         </div>
+        <p class="pathway-detail-hint">Scroll to explore the full path</p>
         <div class="pathway-detail-body" id="pathway-detail-body"></div>
       </div>
     </section>
@@ -1848,6 +1922,7 @@
       let minY = Infinity;
       let maxX = -Infinity;
       let maxY = -Infinity;
+      const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
       tree.nodes.forEach(node => {
         const w = getNodeWidth(node, tree);
@@ -1860,7 +1935,9 @@
         maxY = Math.max(maxY, node.y + h + glowPad);
       });
 
-      const pad = { top: 24, right: 28, bottom: 36, left: 28 };
+      const pad = isMobile
+        ? { top: 20, right: 16, bottom: 56, left: 16 }
+        : { top: 24, right: 28, bottom: 36, left: 28 };
       const x = minX - pad.left;
       const y = minY - pad.top;
       const w = maxX - minX + pad.left + pad.right;
@@ -1993,16 +2070,19 @@
 
       document.getElementById('pathway-browse').classList.add('hidden');
       document.getElementById('pathway-detail').classList.add('open');
+      document.getElementById('screen-trees').classList.add('pathway-open');
       document.getElementById('pathway-detail-title').textContent = tree.title;
-      document.getElementById('trees-subtitle').textContent = 'Follow the branches — tap glowing nodes to see who else walked here';
 
       const body = document.getElementById('pathway-detail-body');
       body.innerHTML = '<div class="tree-svg-container"></div>';
       renderTree(tree, body.querySelector('.tree-svg-container'));
+      body.scrollTop = 0;
+      requestAnimationFrame(() => { body.scrollTop = 0; });
     }
 
     function closePathway() {
       activeTree = null;
+      document.getElementById('screen-trees').classList.remove('pathway-open');
       document.getElementById('pathway-browse').classList.remove('hidden');
       document.getElementById('pathway-detail').classList.remove('open');
       document.getElementById('trees-subtitle').textContent = 'Three paths grew from your answers — scroll and pick one to explore';
