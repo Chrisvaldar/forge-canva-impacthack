@@ -8,7 +8,7 @@
 
 Forge is a career path explorer for students who don't fit a single linear track. You answer a short reflective quiz: one word for your legacy, your field, your role, what else excites you. It surfaces three possible degree journeys as interactive branching trees.
 
-**This repo is a single HTML file demo.** It was designed, built, and pitched in a hackathon sprint. There's no backend, no API, no framework, just one self-contained `forest.html` file with vanilla JS, SVG trees, and hardcoded path data.
+**This repo is a single HTML file demo.** It was designed, built, and pitched in a hackathon sprint. There's no backend, no API, no framework, just one self-contained `index.html` file with vanilla JS, SVG trees, and hardcoded path data.
 
 ---
 
@@ -64,7 +64,7 @@ The point was to demonstrate the concept and UX convincingly in the time availab
 
 | File | What it is |
 |------|------------|
-| `forest.html` | The full Forge demo |
+| `index.html` | The full Forge demo |
 | `Pitch_Deck.pdf` | Hackathon pitch deck |
 
 ---
